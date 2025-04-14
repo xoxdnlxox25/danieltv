@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transmisiones Universales</title>
+  <style>
+    /* 🌌 Fondo animado estilo pro */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
+      background-size: 400% 400%;
+      animation: fondoAnimado 15s ease infinite;
+      color: #fff;
+    }
+
+    @keyframes fondoAnimado {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      margin: 20px 0;
+      font-size: 2rem;
+      color: #00ffc8;
+      text-shadow: 0 0 10px #00ffc880;
+    }
+
+    .contenedor-videos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      padding: 20px;
+    }
+
+    .video-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #00000060;
+    }
+
+    .video-title {
+      margin-bottom: 10px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #00ffc8;
+      text-shadow: 0 0 5px #00ffc880;
+    }
+
+    video, iframe {
+      width: 100%;
+      height: 340px;
+      border-radius: 12px;
+      border: 2px solid #ffffff30;
+      box-shadow: 0 0 12px #00000088;
+      background-color: #000;
+    }
+
+    @media (max-width: 600px) {
+      video, iframe {
+        height: 220px;
+      }
+    }
+
+    footer {
+      margin-top: 50px;
+      padding: 20px;
+      font-size: 0.9rem;
+      background-color: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid #ffffff20;
+      color: #ccc;
+    }
+
+    footer strong {
+      color: #00ffc8;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌐 Transmisiones Compatibles</h1>
+  <div id="contenedor" class="contenedor-videos"></div>
+
+  <footer>
+    🌐 Sitio desarrollado por: <strong>xoxdnlxox</strong> — Todos los derechos reservados © 2025
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbypDvSPl_0rUhc8nGym3XRjL77hSZvDGPgC8DYxMCpruO0da2xfc5jt6Vz5BfsoVvVHrw/exec";
+
+    fetch(endpoint)
+      .then(res => res.json())
+      .then(data => {
+        const contenedor = document.getElementById('contenedor');
+        data.forEach((item, index) => {
+          const box = document.createElement('div');
+          box.className = 'video-box';
+          box.innerHTML = `<div class="video-title">${item.Título}</div>`;
+
+          const contenedorReproductor = document.createElement('div');
+
+          if (item.URL.includes(".m3u8")) {
+            const video = document.createElement('video');
+            video.setAttribute('controls', '');
+            video.setAttribute('autoplay', '');
+            video.setAttribute('muted', '');
+            video.id = `video${index}`;
+
+            contenedorReproductor.appendChild(video);
+            box.appendChild(contenedorReproductor);
+            contenedor.appendChild(box);
+
+            if (Hls.isSupported()) {
+              const hls = new Hls();
+              hls.loadSource(item.URL);
+              hls.attachMedia(video);
+            } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+              video.src = item.URL;
+            } else {
+              video.outerHTML = `<p style="color:red;">Tu navegador no soporta HLS.</p>`;
+            }
+
+          } else if (item.URL.includes("youtube.com") || item.URL.includes("youtu.be")) {
+            const videoId = item.URL.includes("watch?v=")
+              ? item.URL.split("watch?v=")[1]
+              : item.URL.split("/").pop();
+            contenedorReproductor.innerHTML = `
+              <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+            `;
+            box.appendChild(contenedorReproductor);
+            contenedor.appendChild(box);
+
+          } else {
+            contenedorReproductor.innerHTML = `
+              <iframe src="${item.URL}" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+            `;
+            box.appendChild(contenedorReproductor);
+            contenedor.appendChild(box);
+          }
+        });
+      })
+      .catch(error => {
+        document.getElementById('contenedor').innerHTML = `<p style="color: red;">Error al cargar: ${error}</p>`;
+      });
+  </script>
+</body>
+</html>
