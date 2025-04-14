@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Transmisiones Universales</title>
   <style>
-    /* 🌌 Fondo animado estilo pro */
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -72,6 +71,23 @@
       }
     }
 
+    #btnIniciar {
+      padding: 12px 24px;
+      font-size: 1rem;
+      background: #00ffc8;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #00ffc8aa;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    #btnIniciar:hover {
+      background: #00ccaa;
+      box-shadow: 0 0 15px #00ffc8;
+    }
+
     footer {
       margin-top: 50px;
       padding: 20px;
@@ -88,7 +104,8 @@
 </head>
 <body>
   <h1>🌐 Transmisiones Compatibles</h1>
-  <div id="contenedor" class="contenedor-videos"></div>
+  <button id="btnIniciar">🎬 Iniciar experiencia</button>
+  <div id="contenedor" class="contenedor-videos" style="display: none;"></div>
 
   <footer>
     🌐 Sitio desarrollado por: <strong>xoxdnlxox</strong> — Todos los derechos reservados © 2025
@@ -98,60 +115,69 @@
   <script>
     const endpoint = "https://script.google.com/macros/s/AKfycbypDvSPl_0rUhc8nGym3XRjL77hSZvDGPgC8DYxMCpruO0da2xfc5jt6Vz5BfsoVvVHrw/exec";
 
-    fetch(endpoint)
-      .then(res => res.json())
-      .then(data => {
-        const contenedor = document.getElementById('contenedor');
-        data.forEach((item, index) => {
-          const box = document.createElement('div');
-          box.className = 'video-box';
-          box.innerHTML = `<div class="video-title">${item.Título}</div>`;
+    document.getElementById('btnIniciar').addEventListener('click', () => {
+      document.getElementById('contenedor').style.display = 'flex';
+      document.getElementById('btnIniciar').style.display = 'none';
 
-          const contenedorReproductor = document.createElement('div');
+      fetch(endpoint)
+        .then(res => res.json())
+        .then(data => {
+          const contenedor = document.getElementById('contenedor');
+          data.forEach((item, index) => {
+            const box = document.createElement('div');
+            box.className = 'video-box';
+            box.innerHTML = `<div class="video-title">${item.Título}</div>`;
 
-          if (item.URL.includes(".m3u8")) {
-            const video = document.createElement('video');
-            video.setAttribute('controls', '');
-            video.setAttribute('autoplay', '');
-            video.setAttribute('muted', '');
-            video.id = `video${index}`;
+            const contenedorReproductor = document.createElement('div');
 
-            contenedorReproductor.appendChild(video);
-            box.appendChild(contenedorReproductor);
-            contenedor.appendChild(box);
+            if (item.URL.includes(".m3u8")) {
+              const video = document.createElement('video');
+              video.setAttribute('controls', '');
+              video.setAttribute('autoplay', '');
+              video.setAttribute('playsinline', '');
+              video.id = `video${index}`;
 
-            if (Hls.isSupported()) {
-              const hls = new Hls();
-              hls.loadSource(item.URL);
-              hls.attachMedia(video);
-            } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-              video.src = item.URL;
+              contenedorReproductor.appendChild(video);
+              box.appendChild(contenedorReproductor);
+              contenedor.appendChild(box);
+
+              if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(item.URL);
+                hls.attachMedia(video);
+                video.muted = false;
+                video.volume = 1;
+                video.play();
+              } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+                video.src = item.URL;
+                video.muted = false;
+                video.volume = 1;
+                video.play();
+              }
+
+            } else if (item.URL.includes("youtube.com") || item.URL.includes("youtu.be")) {
+              const videoId = item.URL.includes("watch?v=")
+                ? item.URL.split("watch?v=")[1]
+                : item.URL.split("/").pop();
+              contenedorReproductor.innerHTML = `
+                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+              `;
+              box.appendChild(contenedorReproductor);
+              contenedor.appendChild(box);
+
             } else {
-              video.outerHTML = `<p style="color:red;">Tu navegador no soporta HLS.</p>`;
+              contenedorReproductor.innerHTML = `
+                <iframe src="${item.URL}" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+              `;
+              box.appendChild(contenedorReproductor);
+              contenedor.appendChild(box);
             }
-
-          } else if (item.URL.includes("youtube.com") || item.URL.includes("youtu.be")) {
-            const videoId = item.URL.includes("watch?v=")
-              ? item.URL.split("watch?v=")[1]
-              : item.URL.split("/").pop();
-            contenedorReproductor.innerHTML = `
-              <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allowfullscreen allow="autoplay"></iframe>
-            `;
-            box.appendChild(contenedorReproductor);
-            contenedor.appendChild(box);
-
-          } else {
-            contenedorReproductor.innerHTML = `
-              <iframe src="${item.URL}" frameborder="0" allowfullscreen allow="autoplay"></iframe>
-            `;
-            box.appendChild(contenedorReproductor);
-            contenedor.appendChild(box);
-          }
+          });
+        })
+        .catch(error => {
+          document.getElementById('contenedor').innerHTML = `<p style="color: red;">Error al cargar: ${error}</p>`;
         });
-      })
-      .catch(error => {
-        document.getElementById('contenedor').innerHTML = `<p style="color: red;">Error al cargar: ${error}</p>`;
-      });
+    });
   </script>
 </body>
 </html>
